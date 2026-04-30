@@ -1,0 +1,45 @@
+name: Trigger auto deployment for aca-python
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ main ]
+    paths:
+    - '**'
+    - '.github/workflows/aca-python-AutoDeployTrigger-5e2da662-3ba7-488a-a228-a77b7dbfbfd4.yml'
+
+  # Allow manual trigger 
+  workflow_dispatch:
+      
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.ACAPYTHON_AZURE_CREDENTIALS }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          appSourcePath: ${{ github.workspace }}
+          _dockerfilePathKey_: _dockerfilePath_
+          _targetLabelKey_: _targetLabel_
+          registryUrl: craca1.azurecr.io
+          registryUsername: ${{ secrets.ACAPYTHON_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.ACAPYTHON_REGISTRY_PASSWORD }}
+          containerAppName: aca-python
+          resourceGroup: rg-aca-python
+          imageToBuild: craca1.azurecr.io/aca-python:${{ github.sha }}
+          
+            
+
+     
+
